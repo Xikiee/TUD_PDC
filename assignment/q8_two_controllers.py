@@ -1,11 +1,7 @@
 import numpy as np
-# import pandas as pd
-
 import scipy
-
 import matplotlib
 import matplotlib.pyplot as plt
-
 import control as ctrl
 # Steady state 1 values
 
