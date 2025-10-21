@@ -169,6 +169,20 @@ axes[0,1].legend()
 axes[0,1].minorticks_on()
 axes[0,1].grid(which= 'both')
 
+# ---- Temperature plot ----
+axes[1,1].plot(time/60, flow[0], label='Flow H2')
+axes[1,1].plot(time/60, flow[1], label='Flow O2')
+axes[1,1].set_xlabel('Time (min)')
+axes[1,1].set_ylabel('Flow')
+axes[1,1].set_title('Flow vs Time')
+axes[1,1].legend()
+axes[1,1].minorticks_on()
+axes[1,1].grid(which= 'both')
+
+
+
+
+
 plt.tight_layout()
 plt.show()
 
