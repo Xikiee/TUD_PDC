@@ -58,6 +58,35 @@ int_flow = np.array([F5_const, F6_const])
 pressure0 = [2e5, 2e5]
 SP = np.array([2e5, 3e5])
 
+# ---- Set point ---- 
+# Pressure: 
+def pressure_set(time:float,SP:float)->np.ndarray:
+    """
+    This function defines the step change of the pressure in time
+    Arguments: 
+    Time (float): the time frame in which the pressure is to be evaluated
+    SP (float): Set point between which the set point will occure. 
+set flow is
+    Returns: The return is the pressure step change in np.ndarray format 
+    """
+    pressure = []
+    for i in time:
+        if i < 150*60:
+            pressure.append(SP[0]) 
+        else: 
+            pressure.append(SP[1])
+    return pressure
+
+# # Flow: i dont think this will be needed as I can just make a axhline at F5 since F5 is a constant value 
+# def flow_set(time: float)->np.ndarray:
+#     """
+#     Function defines the stech change of flow
+#     Arguments: 
+#     Time (float): the time frame in which the set flow is to be evaluated
+
+#     """
+    
+#     return   
 tau = 30
 
 # ---- Temperature Parameters ----
@@ -118,7 +147,7 @@ pressure, flow, K_c, T_c, T1, T3 = func_int_pressure(
 )
 
 # ---- Plotting ----
-fig, axes = plt.subplots(2, 2, figsize=(10, 6))
+fig, axes = plt.subplots(3, 2, figsize=(10, 6))
 
 # EP profile
 axes[0, 0].plot(time / 60, EP_array, label="EP")
@@ -126,36 +155,62 @@ axes[0, 0].set_xlabel("Time (min)")
 axes[0, 0].set_ylabel("Power (kW)")
 axes[0, 0].set_title("EP profile")
 axes[0, 0].legend()
+axes[0, 0].set_xlim(0, 200)
 axes[0, 0].grid(which="both")
 
-# Pressure
-axes[1, 0].plot(time / 60, pressure[0], label="PH2")
-axes[1, 0].plot(time / 60, pressure[1], label="PO2")
-axes[1, 0].set_xlabel("Time (min)")
-axes[1, 0].set_ylabel("Pressure (Pa)")
-axes[1, 0].set_title("Pressure vs Time")
-axes[1, 0].legend()
-axes[1, 0].grid(which="both")
-
-# Flow
-axes[0, 1].plot(time / 60, flow[0], label="Flow H2")
-axes[0, 1].plot(time / 60, flow[1], label="Flow O2")
+# ---- Temperature (T1,T3)
+axes[0, 1].plot(time / 60, T1, label="T1")
+axes[0, 1].plot(time / 60, T3, label="T3")
 axes[0, 1].set_xlabel("Time (min)")
-axes[0, 1].set_ylabel("Flow (kg/s)")
-axes[0, 1].set_title("Flow vs Time")
+axes[0, 1].set_ylabel("Temperature (°C)")
+axes[0, 1].set_title("Temperature vs Time")
 axes[0, 1].legend()
+axes[0, 1].set_xlim(0, 200)
 axes[0, 1].grid(which="both")
 
-# Temperature
-axes[1, 1].plot(time / 60, T1, label="T1 (Inlet)")
-axes[1, 1].plot(time / 60, T3, label="T3 (Outlet)")
+# ---- Pressure PC1.SP, PC1.Pv
+axes[1, 0].plot(time / 60, pressure[0], label="PH2")
+axes[1, 0].plot(time / 60, pressure_set(time, SP), label="Step Change", ls='--', color='orange')
+axes[1, 0].set_xlabel("Time (min)")
+axes[1, 0].set_ylabel("Pressure (Pa)")
+axes[1, 0].set_title("Pressure vs Time: PC1.SP, PC2.PV")
+axes[1, 0].legend()
+axes[1, 0].set_xlim(0, 200)
+axes[1, 0].grid(which="both")
+
+# ---- Pressure PC2.SP, PC2.PV
+axes[1, 1].plot(time / 60, pressure[1], label="PO2")
+axes[1, 1].plot(time / 60, pressure_set(time, SP), label="Step Change", ls="--", color='orange')
 axes[1, 1].set_xlabel("Time (min)")
-axes[1, 1].set_ylabel("Temperature (°C)")
-axes[1, 1].set_title("Temperature vs Time")
+axes[1, 1].set_ylabel("Pressure (Pa)")
+axes[1, 1].set_title("Pressure vs Time: PC2.SP, PC2.PV")
 axes[1, 1].legend()
+axes[1, 1].set_xlim(0, 200)
 axes[1, 1].grid(which="both")
 
-plt.tight_layout()
+# ---- Flow F5, F3_H2
+axes[2, 0].plot(time / 60, flow[0], label="Flow H2")
+axes[2, 0].axhline(F5_const, label="Flow F5", color='orange')
+axes[2, 0].set_xlabel("Time (min)")
+axes[2, 0].set_ylabel("Flow (kg/s)")
+axes[2, 0].set_title("Flow vs Time: F5 vs F3_H2")
+axes[2, 0].legend()
+axes[2, 0].set_xlim(0, 200)
+axes[2, 0].grid(which="both")
+
+# ---- Flow F6, F4_O2
+axes[2, 1].plot(time / 60, flow[1], label="Flow O2")
+axes[2, 1].axhline(F6_const, label="Flow F6", color='orange')
+axes[2, 1].set_xlabel("Time (min)")
+axes[2, 1].set_ylabel("Flow (kg/s)")
+axes[2, 1].set_title("Flow vs Time: F6 vs F4_O2")
+axes[2, 1].legend()
+axes[2, 1].set_xlim(0, 200)
+axes[2, 1].grid(which="both")
+
+# --- Compact layout ---
+plt.tight_layout(h_pad=0.8)
+plt.subplots_adjust(hspace=0.3)
 plt.show()
 
 print(f"K_c : {K_c}, and T_c : {T_c}")
