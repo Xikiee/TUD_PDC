@@ -50,8 +50,8 @@ gain_vec = np.array([gain_H2, gain_O2])
 
 # ---- Define the Disturbance ----
 F3 = p2 * EP
-F5 = p3 * EP
-disturbance = np.array([F3, F5])
+F4 = p3 * EP
+disturbance = np.array([F3, F4])
 
 # ---- Initial conditions ----
 int_flow = np.array([F5_const, F6_const])
@@ -77,16 +77,7 @@ set flow is
             pressure.append(SP[1])
     return pressure
 
-# # Flow: i dont think this will be needed as I can just make a axhline at F5 since F5 is a constant value 
-# def flow_set(time: float)->np.ndarray:
-#     """
-#     Function defines the stech change of flow
-#     Arguments: 
-#     Time (float): the time frame in which the set flow is to be evaluated
 
-#     """
-    
-#     return   
 tau = 30
 
 # ---- Temperature Parameters ----
@@ -94,8 +85,10 @@ temp_params = [TCA_SP_SS1, T1_SS1, T3_SS1, F1_ELEC_SS1, F2_ELEC_SS1]
 
 # ---- INTEGRATION FUNCTION ----
 def func_int_pressure(
-    pressure0, gain, disturbance, int_flow, SP, dt, tau, temp_params, iter
-):
+    pressure0:np.ndarray, gain:np.ndarray, disturbance:np.ndarray,
+    int_flow:np.ndarray, SP:np.ndarray, dt:float, tau:float,
+    temp_params:np.ndarray, iter:int)->np.ndarray:
+    
     TCA_SP_SS1, T1_SS1, T3_SS1, F1_ELEC_SS1, F2_ELEC_SS1 = temp_params
 
     n = len(gain)
@@ -103,6 +96,7 @@ def func_int_pressure(
     pressure[:, 0] = pressure0
     flow = np.zeros_like(pressure)
     flow[:, 0] = int_flow
+
 
     # Initialize temperature arrays
     T1 = np.zeros(iter)
@@ -119,7 +113,7 @@ def func_int_pressure(
             set_pressure = SP[1]
 
         # ---- Pressure dynamics ----
-        dP_dt = gain * (flow[:, i - 1] - disturbance[:, i - 1])
+        dP_dt = gain * (flow[:, i - 1] - disturbance[:, i - 1])     # F3 - F5 
         pressure[:, i] = pressure[:, i - 1] + dP_dt * dt
 
         # ---- Temperature dynamics ----
@@ -138,11 +132,11 @@ def func_int_pressure(
         T_c = 2 * tau
         flow[:, i] = flow[:, 0] + error * K_c + (K_c * int_error * dt) / T_c
 
-    return pressure, flow, K_c, T_c, T1, T3
+    return pressure, flow, K_c, T_c, T1, T3, int_error
 
 
 # ---- Run simulation ----
-pressure, flow, K_c, T_c, T1, T3 = func_int_pressure(
+pressure, flow, K_c, T_c, T1, T3, error = func_int_pressure(
     pressure0, gain_vec, disturbance, int_flow, SP, dt, tau, temp_params, iter
 )
 
@@ -173,7 +167,7 @@ axes[1, 0].plot(time / 60, pressure[0], label="PH2")
 axes[1, 0].plot(time / 60, pressure_set(time, SP), label="Step Change", ls='--', color='orange')
 axes[1, 0].set_xlabel("Time (min)")
 axes[1, 0].set_ylabel("Pressure (Pa)")
-axes[1, 0].set_title("Pressure vs Time: PC1.SP, PC2.PV")
+axes[1, 0].set_title("Pressure vs Time: PC1.SP, PC1.PV")
 axes[1, 0].legend()
 axes[1, 0].set_xlim(0, 200)
 axes[1, 0].grid(which="both")
@@ -189,8 +183,8 @@ axes[1, 1].set_xlim(0, 200)
 axes[1, 1].grid(which="both")
 
 # ---- Flow F5, F3_H2
-axes[2, 0].plot(time / 60, flow[0], label="Flow H2")
-axes[2, 0].axhline(F5_const, label="Flow F5", color='orange')
+axes[2, 0].plot(time / 60, flow[0], label="Flow H2 (F5)")
+axes[2, 0].plot(time / 60, F3, label="Flow F3", color='orange')
 axes[2, 0].set_xlabel("Time (min)")
 axes[2, 0].set_ylabel("Flow (kg/s)")
 axes[2, 0].set_title("Flow vs Time: F5 vs F3_H2")
@@ -199,8 +193,8 @@ axes[2, 0].set_xlim(0, 200)
 axes[2, 0].grid(which="both")
 
 # ---- Flow F6, F4_O2
-axes[2, 1].plot(time / 60, flow[1], label="Flow O2")
-axes[2, 1].axhline(F6_const, label="Flow F6", color='orange')
+axes[2, 1].plot(time / 60, flow[1], label="Flow O2 (F6)")
+axes[2, 1].plot(time / 60, F4, label="Flow F4", color='orange')
 axes[2, 1].set_xlabel("Time (min)")
 axes[2, 1].set_ylabel("Flow (kg/s)")
 axes[2, 1].set_title("Flow vs Time: F6 vs F4_O2")
