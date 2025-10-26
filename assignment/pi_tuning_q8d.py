@@ -90,7 +90,7 @@ pressure0 = [2e5,2e5]
 SP = np.array([2e5,3e5])
 
 # ---- Controller ----
-tau = 30
+tau = 20
 
 
 
